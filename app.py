@@ -74,10 +74,11 @@ def display_next_question(question):
 		return render_template('question.html', question_id = question - 1, question_num = question, survey = globals.active_survey, key = globals.survey_key, columns = globals.columns)
 
 	# was there a text field in the question?
-	if not request.form.get('elaborate'):
+	if not request.form.get('elaboration'):
 		globals.responses.append(request.form['choice'])
-	elif request.form.get('eleborate') and request.form.get('choice'):
+	elif request.form.get('elaboration') and request.form.get('choice'):
 		globals.responses.append([request.form['choice'], request.form['elaboration']])
+		globals.allowing_text.append(question - 1)
 	else:
 		flash("bad data on form", "error")
 		flash("please try this question again", "info")
@@ -87,8 +88,8 @@ def display_next_question(question):
 	if len(globals.responses) == globals.num_questions:
 		# globals.survey_done = True
 		globals.completed_surveys.append(globals.survey_key)
-		for i in range(globals.num_questions):
-			globals.types.append(type(globals.responses[i]))
+		# for i in range(globals.num_questions):
+		# 	globals.types.append(type(globals.responses[i]))
 		return redirect('/response')
 
 	# user has at least one more question to answer
@@ -96,12 +97,12 @@ def display_next_question(question):
 
 @app.route('/response')
 def survey_done():
-	try:
-		return render_template('response.html', survey = globals.active_survey, responses = globals.responses, num_questions = globals.num_questions, columns = globals.columns, types = globals.types)
-	except:
-		flash("this survey wasn't completed properly", "error")
-		flash("please try again", "info")
-		return redirect('/')
+	# try:
+	return render_template('response.html', survey = globals.active_survey, responses = globals.responses, num_questions = globals.num_questions, columns = globals.columns, allowing_text = globals.allowing_text)
+	# except:
+	# 	flash("something went wonky in this survey", "error")
+	# 	flash("please try again or pick another one", "info")
+	# 	return redirect('/')
 
 @app.route('/reset')
 def reset_and_restart():
@@ -110,6 +111,6 @@ def reset_and_restart():
 	globals.survey_key = 'dummy'
 	globals.active_survey = surveys[globals.survey_key]
 	(globals.num_questions, globals.columns) = survey_size(globals.active_survey)
-	globals.types = []
+	globals.allowing_text = []
 	globals.completed_surveys = [globals.survey_key]
 	return redirect('/')

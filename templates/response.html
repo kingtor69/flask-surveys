@@ -5,7 +5,6 @@
 {% block content %}
 <div class="container">
   <div class="row">
-    <!-- <div class="col-md-{{columns * 3}}"> -->
     <div class="col">
       <h2 class="bg-secondary rounded p-1 pl-2">Your Responses</h2>
     </div>
@@ -24,16 +23,17 @@
         </thead>
         <tbody>
           {% for i in range(num_questions) %}
-          <td class="text-primary">{{survey.questions[i].question}} &nbsp;</td>
-          {% if types[i] == list %}
-          <td>{{responses[i][0]}} &nbsp;</td>
-          <td>{{responses[i][1]}}</td>
-          {% else %}
-          <td>{{responses[i]}}</td>
-          {% if columns == 3 %}
-          <td></td>
-          {% endif %}
-          {% endif %}
+          <tr>
+            <td class="text-primary">{{survey.questions[i].question}} &nbsp;</td>
+            {% if allowing_text.count(i) > 0 %}
+            <td>{{responses[i][0]}} &nbsp;</td>
+            <td>{{responses[i][1]}}</td>
+            {% else %}
+            <td>{{responses[i]}}</td>
+            {% if columns == 3 %}
+            <td></td>
+            {% endif %}
+            {% endif %}
           </tr>
           {% endfor %}
         </tbody>

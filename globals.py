@@ -6,5 +6,5 @@ responses = []
 survey_key = 'dummy'
 active_survey = surveys[survey_key]
 (num_questions, columns) = survey_size(active_survey)
-types = []
+allowing_text = []
 completed_surveys = [survey_key]
