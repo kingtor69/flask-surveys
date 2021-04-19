@@ -1,4 +1,2 @@
-19_3_10-flask-tools-exercise/venv/
-19_3_10-flask-tools-exercise/__pycache__/
-19_1_12-flask-greet-cals/venv/
-19_1_12-flask-greet-calc/__pycache__/
+venv/
+__pycache__/
