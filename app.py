@@ -55,7 +55,13 @@ def display_next_question(url_pt2):
 	where_are_we = len(session.get('responses'))
 	# is this the first question after choosing the survey?
 	if where_are_we == 0 and question == 0:
-		chosen_key = request.form['key']
+		# chosen_key = request.form['key']
+		if session.get('active_survey_key'):
+			chosen_key = session['active_survey_key']
+		else:
+			flash ("we can't find a chosen survey", "error")
+			flash ("please try again", "info")
+			return redirect('/')
 		session['active_survey_key'] = chosen_key
 		active_survey = surveys[chosen_key]
 		(num_questions, columns) = survey_size(active_survey)
@@ -102,14 +108,14 @@ def display_next_question(url_pt2):
 	# enter answer (and text) into session['responses']
 
 	if request.form.get('elaboration'):
-		session['responses'].append([request.form['choice'], request.form['elaboration']])
+		session['responses'][question - 1] = ([request.form['choice'], request.form['elaboration']])
 		if session.get('allowing_text'):
-			session['allowing_text'].append(question - 1)
+			session['allowing_text'][question - 1] = (question - 1)
 		else:
-			session['allowing_text'] = [question - 1]
+			session['allowing_text'][question - 1] = None
 	else:
 		try:
-			session['responses'].append(request.form['choice'])
+			session['responses'][question - 1] = (request.form['choice'])
 		except:
 			flash("bad data on form", "error")
 			flash("please try this question again", "info")
