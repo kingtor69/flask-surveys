@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block tab_title %}Take Our Survey{% endblock %}
-<!-- {% block staticroute %}./{% endblock %} -->
 {% block header %}{{survey.title}}{% endblock %}
 {% block content %}
 <div class="container">
@@ -25,11 +24,11 @@
           {% for i in range(num_questions) %}
           <tr>
             <td class="text-primary">{{survey.questions[i].question}} &nbsp;</td>
-            {% if allowing_text.count(i) > 0 %}
-            <td>{{responses[i][0]}} &nbsp;</td>
-            <td>{{responses[i][1]}}</td>
+            {% if session['allowing_text'].count(i) > 0 %}
+            <td>{{session['responses'][i][0]}} &nbsp;</td>
+            <td>{{session['responses'][i][1]}}</td>
             {% else %}
-            <td>{{responses[i]}}</td>
+            <td>{{session['responses'][i]}}</td>
             {% if columns == 3 %}
             <td></td>
             {% endif %}
@@ -41,7 +40,6 @@
     </div>
   </div>
   <div class="row">
-    <!-- <div class="col-md-{{columns * 3}}"> -->
     <div class="col">
       <h2 class="bg-success border-rounded p-2">THANK YOU for taking our {{survey.title}}</h2>
     </div>
