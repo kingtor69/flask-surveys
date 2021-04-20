@@ -29,10 +29,11 @@ def set_up_session():
 
 @app.route('/home')
 def build_home_html():
-	if len(surveys) == len(session['completed_surveys']):
-		flash("THANK YOU. You have completed all of our surveys.", "info")
-		flash("Please check back later to see if there are any new surveys", "info")
-	
+	if session.get('completed_surveys'):
+		if len(surveys) == len(session['completed_surveys']):
+			flash("THANK YOU. You have completed all of our surveys.", "info")
+			flash("Please check back later to see if there are any new surveys", "info")
+		
 	return render_template('home.html', surveys = surveys)
 
 
@@ -66,6 +67,9 @@ def display_next_question(url_pt2):
 			flash ("please try again", "info")
 			return redirect('/')
 	
+	print('*****0000000000000000*******')
+	print(session.get('responses'))
+	print('#######000000000000000#####')
 	# are we on a valid question URL (i.e. the # matches the next one we need)
 	if where_are_we == question:
 		try:
@@ -96,6 +100,7 @@ def display_next_question(url_pt2):
 		return render_template('question.html', question_id = question, question_num = question + 1, survey = active_survey, key = session['active_survey_key'], columns = columns)
 
 	# enter answer (and text) into session['responses']
+
 	if request.form.get('elaboration'):
 		session['responses'].append([request.form['choice'], request.form['elaboration']])
 		if session.get('allowing_text'):
@@ -113,6 +118,9 @@ def display_next_question(url_pt2):
 	# if user just answered the last question of the survey:
 	if question == len(active_survey.questions):
 		session['completed_surveys'].append(session['active_survey_key'])
+		print('******11111111111111******')
+		print(session.get('responses'))
+		print('#######111111111111111111#########')
 		return redirect('/response')
 
 	# user has at least one more question to answer
@@ -120,11 +128,18 @@ def display_next_question(url_pt2):
 
 @app.route('/response')
 def survey_done():
+	print('*****222222222222222******')
+	print(session.get('responses'))
+	print('########2222222222222222222#########')
 	active_survey = surveys[session['active_survey_key']]
 	(num_questions, columns) = survey_size(active_survey)
+	print('******3333333333333333333*********')
+	print(session.get('responses'))
+	print('#######333333333333############')
 	try:
 		return render_template('response.html', survey = active_survey, num_questions = num_questions, columns = columns)
 	except:
+		return render_template('debug.html')
 		flash("something went wonky in this survey", "error")
 		flash("it's probably my bad", "info")
 		flash("please try again or pick another one", "info")

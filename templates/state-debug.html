@@ -1,5 +1,6 @@
 <!-- this was writtin by Colt Steele, and/or Rithm School, and/or Springboard
 I am using it for troubleshooting purposes and it should be gone by the time I finish -->
+<!--I am a student of Mr. Colt Steele via Springbaord and am using it for troubleshooting also, but only for Flask session work, which is why his code for cookies has been deleted -->
 <style>
 body {
   font-family: sans-serif;
@@ -14,17 +15,6 @@ fieldset label {
   font-weight: bold;
 }
 </style>
-{# For demo purposes, show our cookies #}
-{% if request.cookies %}
-<fieldset>
-  <label>Cookies Received By Flask</label>
-  <ul>
-    {% for name, value in request.cookies.items() %}
-    <li>{{ name }} = "{{ value }}"</li>
-    {% endfor %}
-  </ul>
-</fieldset>
-{% endif %}
 {# For demo purposes, show our sessions #}
 {% if session %}
 <fieldset>
