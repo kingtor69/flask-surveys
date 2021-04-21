@@ -16,7 +16,7 @@ debug = DebugToolbarExtension(app)
 @app.route('/')
 def set_up_session():
 	"""set up Flask session to store user's progress separately from anyone else's"""
-
+	print('>>>>>>>>>>>>>>we are in set_up_session<<<<<<<<<<<<<<')
 	# initialize temp variables with startup values
 	temp_active_survey = 'dummy'
 	temp_responses = []
@@ -57,7 +57,7 @@ def build_home_html():
 		if len(surveys) == len(session['completed_surveys']):
 			flash("THANK YOU. You have completed all of our surveys.", "info")
 			flash("Please check back later to see if there are any new surveys", "info")
-		
+
 	return render_template('home.html', surveys = surveys)
 
 
@@ -65,17 +65,29 @@ def build_home_html():
 @app.route('/question/<url_pt2>', methods=['POST', 'GET'])
 def display_next_question(url_pt2):
 	"""process previous page and move on to next question"""
-	
 
-	print('**************-1-1-1-1-1-1-1****************')
-	print(session.get('responses'))
-	for response in request.form:
-		print(response)
-		print(request.form[response])
-	print('##############-1-1-1-1-1-1##############')
+	# first things first: load responses and completed surveys into temp variables
+	#? might be unnecessary, but I couldn't make pushing to a list in the session work
+	# lst = dic.get('list') if type(dic.get('list')) == list else []
+	temp_responses = session.get('responses') if type(session.get('response')) == list else []
+	temp_completed_surveys = session.get('completed_surveys') if type(session.get('completed_surveys')) == list else []
+
+	# is there an active survey key in the session?
+	if not session.get('active_survey_key'):
+		flash("line 77 - nothing in the session under active survey", "troubleshooting")
+		flash("a survey was never chosen", "error")
+		flash("please choose a survey", "info")
+		return redirect('/')
+
+	# load survey object from surveys using session's survey key
+	#? also might be unnecessary, but it seemed to me the survey dictionary didn't save properly in the session, so it was better to use a reference to it
+	active_survey = surveys[session['active_survey_key']]
+	(num_questions, columns) = survey_size(active_survey)
+
 	# if the URL is non-numeric, it was manually entered and must go back to the start
 	if not url_pt2.isnumeric():
-		flash("bad url", "error")
+		flash("interger expected where there was none in url", "error")
+		# TODO: is it possible to figure out where we should be from the session and redirect there?
 		flash("insuffienct data to continue", "error")
 		flash("please choose a survey", "info")
 		return redirect('/')
@@ -83,7 +95,7 @@ def display_next_question(url_pt2):
 	# convert the URL to an integer
 	question = int(url_pt2)
 	# determine the question we need next
-	where_are_we = len(session.get('responses'))
+	where_are_we = len(temp_responses)
 	# is this the first question after choosing the survey?
 	if where_are_we == 0 and question == 0:
 		chosen_key = request.form['key']
@@ -92,35 +104,28 @@ def display_next_question(url_pt2):
 		(num_questions, columns) = survey_size(active_survey)
 		try:
 			# if surveys.values().get(active_survey):
-			return render_template('question.html', question_id = question, question_num = question + 1, survey = active_survey, key = session['active_survey_key'], columns = columns)
+			return render_template('question.html', question_id = question, question_num = question + 1, survey = active_survey, key = chosen_key, columns = columns)
 		except:
-			flash ("I think this is our first except and the problem is on the stupid template", "troubleshooting")
+			flash ("I wrote this when it was line 97. I don't expect to see it again unless I break something else :/", "troubleshooting")
 			flash ("we can't find a chosen survey", "error")
 			flash ("please try again", "info")
 			return redirect('/')
 	
-	print('*****0000000000000000*******')
-	print(session.get('responses'))
-	print('#######000000000000000#####')
 	# are we on a valid question URL (i.e. the # matches the next one we need)
 	if where_are_we == question:
 		try:
 			return render_template('question.html', question_id = question, question_num = question + 1, survey = active_survey, key = session['active_survey_key'], columns = columns)
 		except:
 			flash("bad url", "error")
+			flash("line 113", "troubleshooting")
+			flash("seemed good, but template failed to render", "troubleshooting")
 			flash("insuffienct data to continue", "error")
 			flash("please choose a survey", "info")
 			return redirect('/')
 
-
-	# get the size of the chosen survey:
-	active_survey = surveys[session['active_survey_key']]
-	(num_questions, columns) = survey_size(active_survey)
-
 	# redirect to home page if a user manually navigates to a question page wihtout selecting a survey:
 	if session.get('active_survey') == "dummy":
-		flash('this was line 103 when I wrote it?', 'troubleshooting')
-		# YES, but when did the key get turned back into dummy?
+		flash('this was line 120 when I last saw it', 'troubleshooting')
 		flash("a survey was never chosen", "error")
 		flash("please choose a survey", "info")
 		return redirect('/')
@@ -132,21 +137,9 @@ def display_next_question(url_pt2):
 		return render_template(f'question.html', question_id = question - 1, question_num = question, survey = session['active_survey_key'], columns = columns)
 
 	# enter answer (and text) into session['responses']
-
+	# k, right now, the "choice" is being entered twice but not sticking around
 	if request.form.get('elaboration'):
-		print ('********AAAAAARRRRRRRAAAAAAYYYYYYYY*********')
-		print ('this is where we should be appending to responses')
-		print ('#######AAAAAARRRRRRRAAAAAAYYYYYYYY##########')
 		temp_responses.append([request.form['choice'], request.form['elaboration']])
-		print ('********AAAAAARRRRRRRAAAAAAYYYYYYYY*********')
-		print ('and it should be done')
-		print (session.get('responses'))
-		print ('the before array is')
-		print (session.get('responses'))
-		print ('#######AAAAAARRRRRRRAAAAAAYYYYYYYY##########')
-
-		
-		session['responses'].append([request.form['choice'], request.form['elaboration']])
 		if session.get('allowing_text'):
 			session['allowing_text'].append(question - 1)
 		# else:
@@ -154,37 +147,32 @@ def display_next_question(url_pt2):
 	else:
 		try:
 			temp_responses.append(request.form['choice'])
-			print ('********SSSSSTTTTTRRRRRRRIIIIINNNNNGGGGGGG*********')
-			print ('and it should be done')
-			print (session.get('responses'))
-			print ('#######SSSSSTTTTTRRRRRRRIIIIINNNNNGGGGGGG##########')
 			session['responses'].append(request.form['choice'])
 		except:
 			flash("bad data on form", "error")
 			flash("please try this question again", "info")
+			session['responses'] = temp_responses
 			return redirect(f'/question/{where_are_we}')
+	
 
 	# if user just answered the last question of the survey:
 	if question == len(active_survey.questions):
 		temp_completed_surveys.append(session['active_survey_key'])
-		print('******11111111111111******')
-		print(session.get('responses'))
-		print('#######111111111111111111#########')
+		session['completed_surveys'] = temp_completed_surveys
+		session['responses'] = temp_responses
 		return redirect('/response')
 
 	# user has at least one more question to answer
+	session['responses'] = temp_responses
 	return render_template('question.html', question_id = question, question_num = question +1, survey = active_survey, key = session['active_survey_key'], columns = columns)
 
 @app.route('/response')
 def survey_done():
-	print('*****222222222222222******')
-	print(session.get('responses'))
-	print('########2222222222222222222#########')
+	""" survey is complete, load thank you page with summary of user's answers"""
+
+	# load survey object from surveys using session's survey key
 	active_survey = surveys[session['active_survey_key']]
 	(num_questions, columns) = survey_size(active_survey)
-	print('******3333333333333333333*********')
-	print(session.get('responses'))
-	print('#######333333333333############')
 	try:
 		return render_template('response.html', survey = active_survey, num_questions = num_questions, columns = columns)
 	except:
@@ -197,19 +185,6 @@ def survey_done():
 
 @app.route('/reset')
 def reset_and_restart():
-	"""resets all parameters and starts over"""
-	if session.get('responses'):
-		session['responses'] = []
-	if session.get('survey_key'):
-		session['survey_key'] = 'dummy'
-	if session.get('allowing_text'):
-		session['allowing_text'] = []
-	if session.get('completed_surveys'):
-		session['completed_surveys'] = []
-	globals.responses = []
-	globals.survey_key = 'dummy'
-	globals.active_survey = surveys[globals.survey_key]
-	(globals.num_questions, globals.columns) = survey_size(globals.active_survey)
-	globals.allowing_text = []
-	globals.completed_surveys = [globals.survey_key]
+	"""clears flask session and goes back to beginning"""
+	session.clear()
 	return redirect('/')
