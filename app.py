@@ -44,6 +44,10 @@ def set_up_session():
 		(num_questions, columns) = survey_size(surveys['active_survey'])
 		return render_template('question.html', survey = session['active_survey'], num_questions = num_questions, columns = columns)
 
+	if not session.get('completed_surveys'):
+		session['completed_surveys'] = ['dummy']
+	if not session.get('responses'):
+		session['responses'] = []
 	return redirect('/home')
 	# return render_template('home.html')
 
@@ -63,12 +67,12 @@ def display_next_question(url_pt2):
 	"""process previous page and move on to next question"""
 	
 
-	print('*****-1-1-1-1-1-1*******')
+	print('**************-1-1-1-1-1-1-1****************')
 	print(session.get('responses'))
 	for response in request.form:
 		print(response)
 		print(request.form[response])
-	print('#######-1-1-1-1-1-1#####')
+	print('##############-1-1-1-1-1-1##############')
 	# if the URL is non-numeric, it was manually entered and must go back to the start
 	if not url_pt2.isnumeric():
 		flash("bad url", "error")
@@ -81,12 +85,7 @@ def display_next_question(url_pt2):
 	# determine the question we need next
 	where_are_we = len(session.get('responses'))
 	# is this the first question after choosing the survey?
-	print('********where-and-which***********')
-	print(where_are_we)
-	print(question)
-	print('###########where-and-which###########')
 	if where_are_we == 0 and question == 0:
-		print("*****and we're in########")
 		chosen_key = request.form['key']
 		session['active_survey_key'] = chosen_key
 		active_survey = surveys[chosen_key]
@@ -100,7 +99,9 @@ def display_next_question(url_pt2):
 			flash ("please try again", "info")
 			return redirect('/')
 	
-
+	print('*****0000000000000000*******')
+	print(session.get('responses'))
+	print('#######000000000000000#####')
 	# are we on a valid question URL (i.e. the # matches the next one we need)
 	if where_are_we == question:
 		try:
@@ -130,7 +131,8 @@ def display_next_question(url_pt2):
 		flash("please select an answer", "info")
 		return render_template(f'question.html', question_id = question - 1, question_num = question, survey = session['active_survey_key'], columns = columns)
 
-	# enter answer (and text) into responses key in session cookie
+	# enter answer (and text) into session['responses']
+
 	if request.form.get('elaboration'):
 		print ('********AAAAAARRRRRRRAAAAAAYYYYYYYY*********')
 		print ('this is where we should be appending to responses')
@@ -144,22 +146,19 @@ def display_next_question(url_pt2):
 		print ('#######AAAAAARRRRRRRAAAAAAYYYYYYYY##########')
 
 		
+		session['responses'].append([request.form['choice'], request.form['elaboration']])
 		if session.get('allowing_text'):
 			session['allowing_text'].append(question - 1)
 		# else:
 		# 	session['allowing_text'].append = [question - 1]
 	else:
-		print ('********SSSSSTTTTTRRRRRRRIIIIINNNNNGGGGGGG*********')
-		print ('this is where we should be appending to responses')
-		print ('the before array is')
-		print (session.get('responses'))
-		print ('#######SSSSSTTTTTRRRRRRRIIIIINNNNNGGGGGGG##########')
 		try:
 			temp_responses.append(request.form['choice'])
 			print ('********SSSSSTTTTTRRRRRRRIIIIINNNNNGGGGGGG*********')
 			print ('and it should be done')
 			print (session.get('responses'))
 			print ('#######SSSSSTTTTTRRRRRRRIIIIINNNNNGGGGGGG##########')
+			session['responses'].append(request.form['choice'])
 		except:
 			flash("bad data on form", "error")
 			flash("please try this question again", "info")
@@ -178,6 +177,9 @@ def display_next_question(url_pt2):
 
 @app.route('/response')
 def survey_done():
+	print('*****222222222222222******')
+	print(session.get('responses'))
+	print('########2222222222222222222#########')
 	active_survey = surveys[session['active_survey_key']]
 	(num_questions, columns) = survey_size(active_survey)
 	print('******3333333333333333333*********')
@@ -204,4 +206,10 @@ def reset_and_restart():
 		session['allowing_text'] = []
 	if session.get('completed_surveys'):
 		session['completed_surveys'] = []
+	globals.responses = []
+	globals.survey_key = 'dummy'
+	globals.active_survey = surveys[globals.survey_key]
+	(globals.num_questions, globals.columns) = survey_size(globals.active_survey)
+	globals.allowing_text = []
+	globals.completed_surveys = [globals.survey_key]
 	return redirect('/')
