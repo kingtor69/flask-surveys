@@ -41,7 +41,14 @@ def build_home_html():
 @app.route('/question/<url_pt2>', methods=['POST', 'GET'])
 def display_next_question(url_pt2):
 	"""process previous page and move on to next question"""
-		
+	
+
+	print('**************-1-1-1-1-1-1-1****************')
+	print(session.get('responses'))
+	for response in request.form:
+		print(response)
+		print(request.form[response])
+	print('##############-1-1-1-1-1-1##############')
 	# if the URL is non-numeric, it was manually entered and must go back to the start
 	if not url_pt2.isnumeric():
 		flash("bad url", "error")
@@ -55,13 +62,7 @@ def display_next_question(url_pt2):
 	where_are_we = len(session.get('responses'))
 	# is this the first question after choosing the survey?
 	if where_are_we == 0 and question == 0:
-		# chosen_key = request.form['key']
-		if session.get('active_survey_key'):
-			chosen_key = session['active_survey_key']
-		else:
-			flash ("we can't find a chosen survey", "error")
-			flash ("please try again", "info")
-			return redirect('/')
+		chosen_key = request.form['key']
 		session['active_survey_key'] = chosen_key
 		active_survey = surveys[chosen_key]
 		(num_questions, columns) = survey_size(active_survey)
@@ -69,6 +70,7 @@ def display_next_question(url_pt2):
 			# if surveys.values().get(active_survey):
 			return render_template('question.html', question_id = question, question_num = question + 1, survey = active_survey, key = session['active_survey_key'], columns = columns)
 		except:
+			flash ("I think this is our first except and the problem is on the stupid template", "troubleshooting")
 			flash ("we can't find a chosen survey", "error")
 			flash ("please try again", "info")
 			return redirect('/')
@@ -103,19 +105,19 @@ def display_next_question(url_pt2):
 	if not request.form.get('choice'):
 		flash("no choice was made", "error")
 		flash("please select an answer", "info")
-		return render_template('question.html', question_id = question, question_num = question + 1, survey = active_survey, key = session['active_survey_key'], columns = columns)
+		return render_template(f'question.html', question_id = question - 1, question_num = question, survey = active_survey, key = session['active_survey_key'], columns = columns)
 
 	# enter answer (and text) into session['responses']
 
 	if request.form.get('elaboration'):
-		session['responses'][question - 1] = ([request.form['choice'], request.form['elaboration']])
+		session['responses'].append([request.form['choice'], request.form['elaboration']])
 		if session.get('allowing_text'):
-			session['allowing_text'][question - 1] = (question - 1)
-		else:
-			session['allowing_text'][question - 1] = None
+			session['allowing_text'].append(question - 1)
+		# else:
+		# 	session['allowing_text'].append = [question - 1]
 	else:
 		try:
-			session['responses'][question - 1] = (request.form['choice'])
+			session['responses'].append(request.form['choice'])
 		except:
 			flash("bad data on form", "error")
 			flash("please try this question again", "info")
