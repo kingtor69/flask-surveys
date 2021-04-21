@@ -4,7 +4,7 @@ from flask import Flask, request, render_template, redirect, flash, session, mak
 from flask_debugtoolbar import DebugToolbarExtension
 from surveys import surveys
 from helpers import survey_size
-from globals import *
+# import globals
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "big-secret"
@@ -17,14 +17,32 @@ debug = DebugToolbarExtension(app)
 def set_up_session():
 	"""set up Flask session to store user's progress separately from anyone else's"""
 
-	# if user has saved info in a session, keep it. if not, start with default values to be replaced later
+	# initialize temp variables with startup values
+	temp_active_survey = 'dummy'
+	temp_responses = []
+	temp_completed_surveys = []
 
-	if not session.get('active_survey'):
+	# if user has a saved survey in progress, remplate those values into temp variables
+	# if not, initiatlize session object with startup values
+
+	if session.get('active_survey'):
+		temp_active_survey = session['active_survey']
+	else:
 		session['active_survey_key'] = 'dummy'
-	if not session.get('completed_surveys'):
-		session['completed_surveys'] = ['dummy']
-	if not session.get('responses'):
-		session['responses'] = globals.temp_responses
+	if session.get('completed_surveys'):
+		temp_completed_surveys = session['completed_surveys']
+	else:
+		session['completed_surveys'] = temp_completed_surveys
+	if session.get('responses'):
+		temp_responses = session['responses']
+	else:
+		session['responses'] = temp_responses
+
+	# if the survey is in progress, head on over to the next question
+	if session.get('active_survey') and not session.get('active_survey') == 'dummy':
+		next_question = len(temp_responses)
+		(num_questions, columns) = survey_size(surveys['active_survey'])
+		return render_template('question.html', survey = session['active_survey'], num_questions = num_questions, columns = columns)
 
 	return redirect('/home')
 	# return render_template('home.html')
@@ -73,11 +91,6 @@ def display_next_question(url_pt2):
 		session['active_survey_key'] = chosen_key
 		active_survey = surveys[chosen_key]
 		(num_questions, columns) = survey_size(active_survey)
-		for i in range(num_questions):
-			session['reponses'].append(None)
-		print('*****0000000000000000*******')
-		print(session.get('responses'))
-		print('#######000000000000000#####')
 		try:
 			# if surveys.values().get(active_survey):
 			return render_template('question.html', question_id = question, question_num = question + 1, survey = active_survey, key = session['active_survey_key'], columns = columns)
@@ -104,8 +117,8 @@ def display_next_question(url_pt2):
 	(num_questions, columns) = survey_size(active_survey)
 
 	# redirect to home page if a user manually navigates to a question page wihtout selecting a survey:
-	if session.get('survey_key') == "dummy":
-		flash('is this where it failed?', 'troubleshooting')
+	if session.get('active_survey') == "dummy":
+		flash('this was line 103 when I wrote it?', 'troubleshooting')
 		# YES, but when did the key get turned back into dummy?
 		flash("a survey was never chosen", "error")
 		flash("please choose a survey", "info")
@@ -115,14 +128,14 @@ def display_next_question(url_pt2):
 	if not request.form.get('choice'):
 		flash("no choice was made", "error")
 		flash("please select an answer", "info")
-		return render_template(f'question.html', question_id = question - 1, question_num = question, survey = active_survey, key = session['active_survey_key'], columns = columns)
+		return render_template(f'question.html', question_id = question - 1, question_num = question, survey = session['active_survey_key'], columns = columns)
 
 	# enter answer (and text) into responses key in session cookie
 	if request.form.get('elaboration'):
 		print ('********AAAAAARRRRRRRAAAAAAYYYYYYYY*********')
 		print ('this is where we should be appending to responses')
 		print ('#######AAAAAARRRRRRRAAAAAAYYYYYYYY##########')
-		session['responses'].append([request.form['choice'], request.form['elaboration']])
+		temp_responses.append([request.form['choice'], request.form['elaboration']])
 		print ('********AAAAAARRRRRRRAAAAAAYYYYYYYY*********')
 		print ('and it should be done')
 		print (session.get('responses'))
@@ -142,7 +155,7 @@ def display_next_question(url_pt2):
 		print (session.get('responses'))
 		print ('#######SSSSSTTTTTRRRRRRRIIIIINNNNNGGGGGGG##########')
 		try:
-			session['responses'].append(request.form['choice'])
+			temp_responses.append(request.form['choice'])
 			print ('********SSSSSTTTTTRRRRRRRIIIIINNNNNGGGGGGG*********')
 			print ('and it should be done')
 			print (session.get('responses'))
@@ -154,7 +167,7 @@ def display_next_question(url_pt2):
 
 	# if user just answered the last question of the survey:
 	if question == len(active_survey.questions):
-		session['completed_surveys'].append(session['active_survey_key'])
+		temp_completed_surveys.append(session['active_survey_key'])
 		print('******11111111111111******')
 		print(session.get('responses'))
 		print('#######111111111111111111#########')
@@ -183,9 +196,12 @@ def survey_done():
 @app.route('/reset')
 def reset_and_restart():
 	"""resets all parameters and starts over"""
-	session['responses'] = []
-	session['survey_key'] = 'dummy'
-	session['active_survey'] = surveys[session['survey_key']]
-	session['allowing_text'] = []
-	session['completed_surveys'] = [session['survey_key']]
+	if session.get('responses'):
+		session['responses'] = []
+	if session.get('survey_key'):
+		session['survey_key'] = 'dummy'
+	if session.get('allowing_text'):
+		session['allowing_text'] = []
+	if session.get('completed_surveys'):
+		session['completed_surveys'] = []
 	return redirect('/')
