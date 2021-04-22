@@ -173,15 +173,8 @@ def survey_done():
 	# load survey object from surveys using session's survey key
 	active_survey = surveys[session['active_survey_key']]
 	(num_questions, columns) = survey_size(active_survey)
-	try:
-		return render_template('response.html', survey = active_survey, num_questions = num_questions, columns = columns)
-	except:
-		return render_template('debug.html')
-		flash("something went wonky in this survey", "error")
-		flash("it's probably my bad", "info")
-		flash("please try again or pick another one", "info")
-		flash("just don't hate me", "info")
-		return redirect('/')
+
+	return render_template('response.html', survey = active_survey, num_questions = num_questions, columns = columns)
 
 @app.route('/reset')
 def reset_and_restart():
