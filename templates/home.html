@@ -13,15 +13,13 @@
     <tbody>
       <form action="/question/0" method="POST">
         {% for survey in surveys %}
-        {% for complete_survey in session['completed_surveys'] %}
-        {% if complete_survey.count(survey) == 0 %}
+        {% if session['completed_surveys'].count(survey) == 0 %}
         <tr>
           <td>{{surveys[survey].title}}</td>
           <td>{{surveys[survey].instructions}}</td>
           <td><button class="btn, btn-outline-primary rounded" name="key" value="{{survey}}">take this survey</button></td>
         </tr>
         {% endif %}
-        {% endfor %}
         {% endfor %}
       </form>
     </tbody>
