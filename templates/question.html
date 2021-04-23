@@ -20,14 +20,6 @@
           <th scope="col">{{question_num}}</th>
           <th scope="col">{{survey.questions[question_id].question}}</th>
           <td>
-            <!-- something wonky is happening there:  -->
-            <!--             <select name="choice" id="choice" class="custom-select">
-              <option selected value="">pick one...</option>
-              {% for choice in survey.questions[question_id].choices %}
-              <option value="{{choice}}">{{choice}}</option>
-              {% endfor %}
-            </select> -->
-            <!-- so Imonna try again -->
             {% for choice in survey.questions[question_id].choices %}
             <div class="form-check">
               <input type="radio" name="choice" value="{{choice}}" id="{{choice}}">

@@ -24,7 +24,7 @@
           {% for i in range(num_questions) %}
           <tr>
             <td class="text-primary">{{survey.questions[i].question}} &nbsp;</td>
-            {% if session['allowing_text'].count(i) > 0 %}
+            {% if session['allows_text'].count(i) > 0 %}
             <td>{{session['responses'][i][0]}} &nbsp;</td>
             <td>{{session['responses'][i][1]}}</td>
             {% else %}
