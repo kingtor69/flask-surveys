@@ -13,7 +13,10 @@ debug = DebugToolbarExtension(app)
 
 @app.route('/')
 def phone_home():
-	# 0. software redirects route / to:
+	completed_surveys = session.get('completed_surveys', [])
+	if len(completed_surveys) == len(surveys):
+		flash ('there are no more surveys to answer, please come again', 'info')
+
 	return redirect('/home')
 
 @app.route('/home')
@@ -36,23 +39,25 @@ def display_next_question(question):
 			flash('please choose a survey', 'info')
 			return redirect('/home')
 
-	if not request.form.get('choice'):
-		flash('no response was registered for this question', 'error')
-		flash('please try again', 'info')
-		return redirect(f'/question/{question}')
-
 	survey_key = session['survey_key']
 	survey = surveys[survey_key]
-	# we're ready to proceed if this was question 0
 	(num_questions, columns) = survey_size(survey)
+
+	# we're ready to proceed if this was question 0
 	has_text = (session.get('has_text', []))
 	has_text.append(False)
 	responses = session.get('responses', [])
 
+	# process question response
 	if question > 0:
+		if not request.form.get('choice'):
+			flash('no response was registered for this question', 'error')
+			flash('please try again', 'info')
+			return redirect(f'/question/{question}')
+
 		# does question have a text box?
-		if survey.questions[question].allow_text:
-			has_text[question] = True
+		if survey.questions[question-1].allow_text:
+			has_text[question-1] = True
 			elaboration = request.form.get('elaboration', '<left blank>')
 			response = [request.form['choice'], elaboration]
 		else:
@@ -66,30 +71,12 @@ def display_next_question(question):
 		completed_surveys.append(survey_key)
 		session['completed_surveys'] = completed_surveys
 		return redirect('/response')
-	
+
 	session['has_text'] = has_text
-	session['responses'] = reseponses
+	session['responses'] = responses
 	session['survey_key'] = survey_key
 	
 	return render_template('question.html', question_id = question, question_num = question + 1, survey = survey, columns = columns)
-
-	# -- question/0
-	# 1. software saves chosen survey to session
-	# 2. /question/# (question.html) user is directed to first question in the survey
-	# 3. when user answers that question, they keep going
-
-
-	# -- question/>0
-	# 4. software enters into session:
-	# - whether there was a text box in the question
-	# - append answer into a list 
-	# - (and text box in an array within the responses array)
-	# 5. user is directed to next question
-	# 6. repeat steps question > next question steps until last question
-
-	# question = len(survey.questions)
-	# 7. on last question, redirect to a finished page
-
 
 
 @app.route('/response')
@@ -101,6 +88,8 @@ def survey_done():
 	survey = surveys[key]
 	(num_questions, columns) = survey_size(survey)
 	session['completed_surveys'] = completed_surveys
+	flash (f'THANK YOU for taking our {survey.title}', 'thanks')
+
 	
 	return render_template('response.html', survey = survey, num_questions = num_questions, columns = columns)
 

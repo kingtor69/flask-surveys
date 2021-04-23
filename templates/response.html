@@ -5,7 +5,7 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <h2 class="bg-secondary rounded p-1 pl-2">Your Responses</h2>
+      <h2 class="bg-secondary rounded pb-1 pl-2">Your Responses</h2>
     </div>
   </div>
   <div class="row">
@@ -24,7 +24,7 @@
           {% for i in range(num_questions) %}
           <tr>
             <td class="text-primary">{{survey.questions[i].question}} &nbsp;</td>
-            {% if session['allows_text'].count(i) > 0 %}
+            {% if session['has_text'][i] %}
             <td>{{session['responses'][i][0]}} &nbsp;</td>
             <td>{{session['responses'][i][1]}}</td>
             {% else %}
