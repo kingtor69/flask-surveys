@@ -1,6 +1,6 @@
 # Flask Surveys
 ## The Story
- 0. software checks if there is are any completed surveys in the session
+ 1. software checks if there is are any completed surveys in the session
  0. software redirects route / to:
  1. /home (home.html) - user chooses a survey from a list of available surveys 
    - software does not display any completed surveys
