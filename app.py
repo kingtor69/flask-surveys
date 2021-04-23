@@ -15,40 +15,7 @@ debug = DebugToolbarExtension(app)
 
 @app.route('/')
 def set_up_session():
-	"""set up Flask session to store user's progress separately from anyone else's"""
-	print('>>>>>>>>>>>>>>we are in set_up_session<<<<<<<<<<<<<<')
-	# initialize temp variables with startup values
-	temp_active_survey = 'dummy'
-	temp_responses = []
-	temp_completed_surveys = []
-
-	# if user has a saved survey in progress, remplate those values into temp variables
-	# if not, initiatlize session object with startup values
-
-	if session.get('active_survey'):
-		temp_active_survey = session['active_survey']
-	else:
-		session['active_survey_key'] = 'dummy'
-	if session.get('completed_surveys'):
-		temp_completed_surveys = session['completed_surveys']
-	else:
-		session['completed_surveys'] = temp_completed_surveys
-	if session.get('responses'):
-		temp_responses = session['responses']
-	else:
-		session['responses'] = temp_responses
-
-	# if the survey is in progress, head on over to the next question
-	if session.get('active_survey') and not session.get('active_survey') == 'dummy':
-		next_question = len(temp_responses)
-		(num_questions, columns) = survey_size(surveys['active_survey'])
-		return render_template('question.html', survey = session['active_survey'], num_questions = num_questions, columns = columns)
-
-	if not session.get('completed_surveys'):
-		session['completed_surveys'] = ['dummy']
-	if not session.get('responses'):
-		session['responses'] = []
-	return redirect('/home')
+	
 	# return render_template('home.html')
 
 @app.route('/home')

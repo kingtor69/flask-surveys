@@ -50,16 +50,7 @@ personality_quiz = Survey(
     ]
 )
 
-# dummy_survey added to Tor Kingdon
-dummy_survey = Survey(
-    "Title",
-    "Instructions.",
-    [
-        Question("A question")
-    ])
-
 surveys = {
-    "dummy": dummy_survey,
     "satisfaction": satisfaction_survey,
     "personality": personality_quiz,
 }
